@@ -20,7 +20,7 @@ const HEADER_HEIGHT = 280
 
 //ADD localhost address of your server
 const API_URL = "http://192.168.10.9:3000";
-const GOOGLE_MAPS_API_KEY = "AIzaSyCc-u9f8sMzo7ETUnr2LEWt47zC9hk-r4w";
+
 
 const Home = ({ navigation }) => {
 
