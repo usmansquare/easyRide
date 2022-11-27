@@ -1,34 +1,26 @@
 import { StyleSheet, Text, View, Modal, TouchableOpacity, Image, KeyboardAvoidingView, Platform } from 'react-native'
-import React,{useRef,useEffect} from 'react'
+import React, { useRef, useEffect } from 'react'
+import { GOOGLE_MAPS_API_KEY } from '@env'
 import * as Animatable from 'react-native-animatable'
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete"
 import { COLORS, FONTS, icons, SIZES } from '../constants'
-import LineDivider from './LineDivider'
-import FavouritePlaces from './FavouritePlaces'
-
-
-const GOOGLE_MAPS_API_KEY = "AIzaSyDriS8B8WOcGLA8GWu0iRLeDyZKZ6BsrNw"
+import { LineDivider, FavouritePlaces } from '../components'
 
 const PickUpModal = ({
-    modalVisible, setModalVisible, setOrigin, setDestination, handlePickUp, origin, destination
+    modalVisible, setModalVisible, setOrigin, setDestination, handlePickUp,
+    origin, destination, favouritePlaces, setFavouritePlaces
 }) => {
 
     const destinationRef = useRef(null);
     const originRef = useRef(null);
 
     useEffect(() => {
-        if (origin) 
-        {
+        if (origin) {
             originRef.current?.setAddressText(origin.description);
-        } 
-        else if (destination) 
-        {
+        } else if (destination) {
             destinationRef.current?.setAddressText(destination.description);
         }
-      }, [origin,destination]);
-    // console.log("Destination",setDestination);
-    // console.log("Pickup");
-
+    }, [origin, destination]);
 
     return (
         <Modal
@@ -42,7 +34,7 @@ const PickUpModal = ({
                 style={{
                     flex: 1,
                     backgroundColor: COLORS.transparentBlack4,
-                    paddingTop:10
+                    paddingTop: 10
                 }}
             >
                 <Animatable.View
@@ -72,7 +64,14 @@ const PickUpModal = ({
                             }}
                         >Choose Pick Up</Text>
                         <TouchableOpacity
-                            onPress={() => setModalVisible(!modalVisible)}
+                            onPress={() => {
+                                setModalVisible(!modalVisible)
+                                setFavouritePlaces((previous) => {
+                                    return previous.map((p, i) => {
+                                        return { ...p, selected: false }
+                                    })
+                                })
+                            }}
                         >
                             <Image
                                 source={icons.close}
@@ -190,9 +189,9 @@ const PickUpModal = ({
                                         language: "en",
                                     }}
                                     styles={toInputBoxStyles}
-                                    // setAddressText={(origin.description)=>{}}
                                 />
                             </View>
+
                             {/* Vertical Line */}
                             <View
                                 style={{
@@ -231,12 +230,17 @@ const PickUpModal = ({
                                 marginVertical: SIZES.base
                             }}
                         />
-                        <FavouritePlaces 
-                            home={false}
-                            showTitle={false} 
-                            setOrigin={setOrigin} 
-                            setModalVisible={setModalVisible}
-                        />
+                        {
+                            favouritePlaces &&
+                            <FavouritePlaces
+                                showTitle={false}
+                                setOrigin={setOrigin}
+                                setModalVisible={setModalVisible}
+                                favouritePlaces={favouritePlaces}
+                                setFavouritePlaces={setFavouritePlaces}
+                            />
+                        }
+
                     </View>
                 </Animatable.View>
             </KeyboardAvoidingView>

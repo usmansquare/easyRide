@@ -1,17 +1,20 @@
-import { StyleSheet, Text, View, Modal, FlatList, TouchableOpacity, Image } from 'react-native'
+import { StyleSheet, Text, View, Modal, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient';
+import { GOOGLE_MAPS_API_KEY } from '@env'
+import { useSelector } from 'react-redux'
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import { FONTS, SIZES, COLORS, icons } from '../constants'
-import LineDivider from './LineDivider';
+import {LineDivider, ProfileValue} from '../components'
 
 const SURGE_CHARGE_RATE = 1.5;
-const GOOGLE_MAPS_API_KEY = "AIzaSyDriS8B8WOcGLA8GWu0iRLeDyZKZ6BsrNw";
 
 const RequestRideModal = ({
   modalVisible, setModalVisible, origin, destination, handleRideBooking, travelInfo
 }) => {
+
+  const { appTheme } = useSelector((state) => state.themeReducer)
 
   const ridesData = [
     {
@@ -73,6 +76,134 @@ const RequestRideModal = ({
     });
   }, [origin, destination]);
 
+
+
+  const renderUberXRides = () => {
+    return (
+      <View style ={{ marginTop: SIZES.radius }}>
+        <View
+          style={{
+            padding: SIZES.radius
+          }}
+        >
+          <Text style={{
+            ...FONTS.h3,
+            fontSize: 20,
+            color: appTheme?.textColor
+          }}>Uber X</Text>
+           <LineDivider
+            lineStyle={{
+              width: 45,
+              height: 2,
+              marginTop: SIZES.base,
+              backgroundColor: COLORS.primary
+            }}
+          />
+        </View>
+        <View>
+          {
+            ridesData.map((item, index) => {
+              return (
+                <ProfileValue
+                  key={`uberX-${index}`}
+                  icon={icons.taxi_icon}
+                  label={"Danish Aslam"}
+                  value={"ISB 2378, 12 mins away from you"}
+                  containerStyle={styles.profileContainer}
+                  onPress={() => { }}
+                />
+              )
+            })
+          }
+        </View>
+      </View>
+    );
+  };
+
+  const renderUberXLRides = () => {
+    return (
+      <View  style ={{ marginTop: SIZES.radius }}>
+        <View
+          style={{
+            padding: SIZES.radius
+          }}
+        >
+          <Text style={{
+            ...FONTS.h3,
+            fontSize: 20,
+            color: appTheme?.textColor
+          }}>Uber XL</Text>
+           <LineDivider
+            lineStyle={{
+              width: 45,
+              height: 2,
+              marginTop: SIZES.base,
+              backgroundColor: COLORS.primary
+            }}
+          />
+        </View>
+        <View>
+          {
+            ridesData.map((item, index) => {
+              return (
+                <ProfileValue
+                  key={`uberXL-${index}`}
+                  icon={icons.taxi_icon}
+                  label={"Danish Aslam"}
+                  value={"ISB 2378, Wah Cantt"}
+                  containerStyle={styles.profileContainer}
+                  onPress={() => { }}
+                />
+              )
+            })
+          }
+        </View>
+      </View>
+    );
+  };
+
+  const renderUberLUXRides = () => {
+    return (
+      <View  style ={{ marginTop: SIZES.radius }}>
+        <View
+          style={{
+            padding: SIZES.radius
+          }}
+        >
+          <Text style={{
+            ...FONTS.h3,
+            fontSize: 20,
+            color: appTheme?.textColor
+          }}>Uber LUX</Text>
+          <LineDivider
+            lineStyle={{
+              width: 45,
+              height: 2,
+              marginTop: SIZES.base,
+              backgroundColor: COLORS.primary
+            }}
+          />
+        </View>
+        <View>
+          {
+            ridesData.map((item, index) => {
+              return (
+                <ProfileValue
+                  key={`uberLUX-${index}`}
+                  icon={icons.taxi_icon}
+                  label={"Danish Aslam"}
+                  value={"ISB 2378, Wah Cantt"}
+                  containerStyle={styles.profileContainer}
+                  onPress={() => { }}
+                />
+              )
+            })
+          }
+        </View>
+      </View>
+    )
+  }
+
   return (
     <Modal
       animationType='fade'
@@ -92,7 +223,7 @@ const RequestRideModal = ({
               marginBottom: -(SIZES.padding * 2),
               marginLeft: SIZES.base,
               zIndex: 1,
-              top:50
+              top: 50
             }}
             onPress={() => setModalVisible(!modalVisible)}
           >
@@ -163,7 +294,7 @@ const RequestRideModal = ({
           <View
             style={{ flex: .9 }}
           >
-            <FlatList
+            {/* <FlatList
               data={ridesData}
               keyExtractor={(item) => `ride-${item.id}`}
               ItemSeparatorComponent={() => <LineDivider />}
@@ -196,7 +327,17 @@ const RequestRideModal = ({
                   </TouchableOpacity>
                 )
               }}
-            />
+            /> */}
+            <ScrollView
+              style={{ flex: 1 }}
+            >
+              {/* Render UberX Rides */}
+              {renderUberXRides()}
+              {/* Render UberXL Rides */}
+              {renderUberXLRides()}
+              {/* Render Uber LUX */}
+              {renderUberLUXRides()}
+            </ScrollView>
           </View>
           <View style={{ flex: .25, paddingHorizontal: SIZES.base, marginTop: SIZES.base }}>
             <LinearGradient
@@ -247,5 +388,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: SIZES.radius,
     borderTopRightRadius: SIZES.radius,
+  },
+  profileContainer: {
+    height: 75,
+    marginTop: SIZES.base,
+    marginHorizontal: SIZES.radius,
+    paddingHorizontal: SIZES.radius,
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    borderColor: COLORS.gray20
   }
 })

@@ -4,24 +4,13 @@ import { ProfileValue, LineDivider } from '../components'
 import { COLORS, SIZES, FONTS, icons } from '../constants'
 import { useSelector } from 'react-redux'
 
-const FavouritePlaces = ({ showTitle = true , setDestination, setModalVisible, setOrigin, home}) => {
+
+
+const FavouritePlaces = ({ showTitle = true, setDestination, setOrigin, setModalVisible,
+    favouritePlaces, setFavouritePlaces
+}) => {
     const { appTheme } = useSelector((state) => state.themeReducer)
-    const [favourites, setFavourites] = useState([
-        {
-            id: "234",
-            icon: icons.home,
-            name: "Home",
-            location: { lat: 5.4945, lng: -0.4118 },
-            description: "Jordan Gospel Centre, Land of Grace",
-        },
-        {
-            id: "567",
-            icon: icons.calendar,
-            name: "Work",
-            location: { lat: 5.5497, lng: -0.3522 },
-            description: "Finger Bites Kitchen, Mile 11",
-        },
-    ]);
+
 
     return (
         <View>
@@ -50,32 +39,52 @@ const FavouritePlaces = ({ showTitle = true , setDestination, setModalVisible, s
                 </View>
             }
             {
-                favourites.map((item, index) => {
-                    return (
-                        <ProfileValue
-                            key={`place-${index}`}
-                            icon={item.icon}
-                            label={item.name}
-                            value={item.description}
-                            containerStyle={styles.profileContainer}
-                            onPress={()=>{
-                                console.log("Hello I am touched");
-                                if(home==true){
-                                    setDestination({
-                                        location:item.location,
-                                        description:item.description
-                                    })
-                                    setModalVisible(true)
+                favouritePlaces.map((item, index) => {
+                    if (item.selected === false)
+                        return (
+                            <ProfileValue
+                                key={`place-${index}`}
+                                icon={
+                                    item.name === "Home" ? icons.home
+                                        : item.name === "Work" ? icons.calendar : icons.location
                                 }
-                                else setOrigin(
-                                    {
-                                        location:item.location,
-                                        description:item.description
+                                label={item.name}
+                                value={item.description}
+                                containerStyle={styles.profileContainer}
+                                onPress={() => {
+                                    if (showTitle) {
+                                        setDestination({
+                                            location: item.location,
+                                            description: item.description
+                                        })
+                                        setModalVisible(true)
+                                        setFavouritePlaces((previous) => {
+                                            return previous.map((p, i) => {
+                                                if (i === index) {
+                                                    return { ...p, selected: true }
+                                                } else {
+                                                    return p
+                                                }
+                                            })
+                                        })
+                                    } else {
+                                        setOrigin({
+                                            location: item.location,
+                                            description: item.description
+                                        });
+                                        setFavouritePlaces((previous) => {
+                                            return previous.map((p, i) => {
+                                                if (i === index) {
+                                                    return { ...p, selected: true }
+                                                } else {
+                                                    return p
+                                                }
+                                            })
+                                        })
                                     }
-                                );
-                            }}
-                        />
-                    )
+                                }}
+                            />
+                        )
                 })
             }
         </View>

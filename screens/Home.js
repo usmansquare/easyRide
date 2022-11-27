@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image, FlatList, ScrollView, ActivityIndicator } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
+import { GOOGLE_MAPS_API_KEY } from '@env'
 import Animated, {
   interpolate, Extrapolate, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withDelay, withTiming, runOnJS
 } from 'react-native-reanimated'
@@ -43,7 +44,8 @@ const Home = ({ navigation }) => {
 
   const [origin, setOrigin] = useState(null)
   const [destination, setDestination] = useState(null)
-  const [travelInfo, setTravelInfo] = useState(null);
+  const [travelInfo, setTravelInfo] = useState(null)
+  const [favouritePlaces, setFavouritePlaces] = useState(null);
 
   const onScroll = useAnimatedScrollHandler((event) => {
     scrollY.value = event.contentOffset.y
@@ -93,11 +95,29 @@ const Home = ({ navigation }) => {
   }, [origin, destination, GOOGLE_MAPS_API_KEY]);
 
 
+  useEffect(() => {
+    setFavouritePlaces([])
+    db.collection("passengers").doc(auth.currentUser.uid).collection("places")
+      .get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          setFavouritePlaces((previous) => {
+            return [
+              ...previous,
+              doc.data()
+            ]
+          });
+        });
+      });
+  }, [])
+
   const handlePickUp = () => {
     setPickUpModal(!pickUpModal)
-    console.warn("origin: ", origin)
-    console.warn("destination: ", destination)
     setRequestRideModal(!requestRideModal)
+    setFavouritePlaces((previous) => {
+      return previous.map((p, i) => {
+        return { ...p, selected: false }
+      })
+    })
   };
 
   const handleRideBooking = async () => {
@@ -353,11 +373,16 @@ const Home = ({ navigation }) => {
         onScroll={onScroll}
       >
         {/* Render Saved & Favourite Places */}
-        <FavouritePlaces
-        home={true}
-        setModalVisible={setPickUpModal}
-        setDestination={setDestination}
-        />
+        {
+          favouritePlaces &&
+          <FavouritePlaces
+            favouritePlaces={favouritePlaces}
+            setFavouritePlaces={setFavouritePlaces}
+            setModalVisible={setPickUpModal}
+            setDestination={setDestination}
+          />
+        }
+
 
         {/* Render Around You */}
         {renderAroundYou()}
@@ -371,13 +396,15 @@ const Home = ({ navigation }) => {
       />
 
       <PickUpModal
+        origin={origin}
+        destination={destination}
         modalVisible={pickUpModal}
         setModalVisible={setPickUpModal}
         handlePickUp={handlePickUp}
         setOrigin={setOrigin}
         setDestination={setDestination}
-        origin = {origin}
-        destination = {destination}
+        favouritePlaces={favouritePlaces}
+        setFavouritePlaces={setFavouritePlaces}
       />
 
       <RequestRideModal

@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View, Modal, FlatList, TouchableOpacity, Image } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient';
+import { GOOGLE_MAPS_API_KEY } from '@env'
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import { FONTS, SIZES, COLORS, icons, images } from '../constants'
 import LineDivider from './LineDivider';
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyDriS8B8WOcGLA8GWu0iRLeDyZKZ6BsrNw";
 
 const StarReview = ({ rate }) => {
     const starComponents = []
@@ -199,7 +199,6 @@ const RideModal = ({
                         style={{ flex: 1 }}
                         provider={PROVIDER_GOOGLE}
                         initialRegion={region}
-                        mapType="mutedStandard"
                         showsCompass={true}
                         showsMyLocationButton={true}
                         showsScale={true}
