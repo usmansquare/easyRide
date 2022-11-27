@@ -6,7 +6,7 @@ import MapViewDirections from 'react-native-maps-directions';
 import { FONTS, SIZES, COLORS, icons, images } from '../constants'
 import LineDivider from './LineDivider';
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyBvYHDUXXUAJdn7gDxJgT1mdmqJt22hQFA";
+const GOOGLE_MAPS_API_KEY = "AIzaSyDriS8B8WOcGLA8GWu0iRLeDyZKZ6BsrNw";
 
 const StarReview = ({ rate }) => {
     const starComponents = []
@@ -103,7 +103,7 @@ const RideModal = ({
     useEffect(() => {
         if (!origin || !destination) return;
 
-        mapRef.current?.fitToSuppliedMarkers(["origin", "destination"], {
+        _map.current?.fitToSuppliedMarkers(["origin", "destination"], {
             edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
         });
     }, [origin, destination]);

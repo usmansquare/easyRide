@@ -4,7 +4,7 @@ import { ProfileValue, LineDivider } from '../components'
 import { COLORS, SIZES, FONTS, icons } from '../constants'
 import { useSelector } from 'react-redux'
 
-const FavouritePlaces = ({ showTitle = true }) => {
+const FavouritePlaces = ({ showTitle = true , setDestination, setModalVisible, setOrigin, home}) => {
     const { appTheme } = useSelector((state) => state.themeReducer)
     const [favourites, setFavourites] = useState([
         {
@@ -58,7 +58,22 @@ const FavouritePlaces = ({ showTitle = true }) => {
                             label={item.name}
                             value={item.description}
                             containerStyle={styles.profileContainer}
-                            onPress={() => console.warn("pressed")}
+                            onPress={()=>{
+                                console.log("Hello I am touched");
+                                if(home==true){
+                                    setDestination({
+                                        location:item.location,
+                                        description:item.description
+                                    })
+                                    setModalVisible(true)
+                                }
+                                else setOrigin(
+                                    {
+                                        location:item.location,
+                                        description:item.description
+                                    }
+                                );
+                            }}
                         />
                     )
                 })

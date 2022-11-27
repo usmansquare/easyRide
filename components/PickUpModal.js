@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Modal, TouchableOpacity, Image, KeyboardAvoidingView, Platform } from 'react-native'
-import React from 'react'
+import React,{useRef,useEffect} from 'react'
 import * as Animatable from 'react-native-animatable'
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete"
 import { COLORS, FONTS, icons, SIZES } from '../constants'
@@ -7,11 +7,29 @@ import LineDivider from './LineDivider'
 import FavouritePlaces from './FavouritePlaces'
 
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyCc-u9f8sMzo7ETUnr2LEWt47zC9hk-r4w"
+const GOOGLE_MAPS_API_KEY = "AIzaSyDriS8B8WOcGLA8GWu0iRLeDyZKZ6BsrNw"
 
 const PickUpModal = ({
-    modalVisible, setModalVisible, setOrigin, setDestination, handlePickUp
+    modalVisible, setModalVisible, setOrigin, setDestination, handlePickUp, origin, destination
 }) => {
+
+    const destinationRef = useRef(null);
+    const originRef = useRef(null);
+
+    useEffect(() => {
+        if (origin) 
+        {
+            originRef.current?.setAddressText(origin.description);
+        } 
+        else if (destination) 
+        {
+            destinationRef.current?.setAddressText(destination.description);
+        }
+      }, [origin,destination]);
+    // console.log("Destination",setDestination);
+    // console.log("Pickup");
+
+
     return (
         <Modal
             animationType='fade'
@@ -23,7 +41,8 @@ const PickUpModal = ({
                 behavior={Platform.OS == "ios" ? "padding" : "height"}
                 style={{
                     flex: 1,
-                    backgroundColor: COLORS.transparentBlack4
+                    backgroundColor: COLORS.transparentBlack4,
+                    paddingTop:10
                 }}
             >
                 <Animatable.View
@@ -118,7 +137,6 @@ const PickUpModal = ({
                                             location: details?.geometry.location,
                                             description: data.description,
                                         })
-
                                     }}
                                     query={{
                                         key: GOOGLE_MAPS_API_KEY,
@@ -154,6 +172,7 @@ const PickUpModal = ({
                                     />
                                 </View>
                                 <GooglePlacesAutocomplete
+                                    ref={destinationRef}
                                     nearbyPlacesAPI="GooglePlacesSearch"
                                     debounce={400}
                                     placeholder="Where to?"
@@ -165,13 +184,13 @@ const PickUpModal = ({
                                             location: details?.geometry.location,
                                             description: data.description,
                                         })
-
                                     }}
                                     query={{
                                         key: GOOGLE_MAPS_API_KEY,
                                         language: "en",
                                     }}
                                     styles={toInputBoxStyles}
+                                    // setAddressText={(origin.description)=>{}}
                                 />
                             </View>
                             {/* Vertical Line */}
@@ -212,7 +231,12 @@ const PickUpModal = ({
                                 marginVertical: SIZES.base
                             }}
                         />
-                        <FavouritePlaces showTitle={false} />
+                        <FavouritePlaces 
+                            home={false}
+                            showTitle={false} 
+                            setOrigin={setOrigin} 
+                            setModalVisible={setModalVisible}
+                        />
                     </View>
                 </Animatable.View>
             </KeyboardAvoidingView>

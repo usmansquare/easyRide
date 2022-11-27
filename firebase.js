@@ -6,14 +6,13 @@ import * as firebase from 'firebase/';
 // Your web app's Firebase configuration
 
 const firebaseConfig = {
-
-  apiKey: "AIzaSyBxnnTtH58SUX3Sl5TvDaQivtMHAQsFaQs",
-  authDomain: "tripak-e1507.firebaseapp.com",
-  projectId: "tripak-e1507",
-  storageBucket: "tripak-e1507.appspot.com",
-  messagingSenderId: "491631230502",
-  appId: "1:491631230502:web:a1e1ffb484b72b8bf7b0e7"
-
+  apiKey: "AIzaSyDzHYRYShfkg4KPymyHLva4Vxz2LleZVuI",
+  authDomain: "easyride-9c986.firebaseapp.com",
+  projectId: "easyride-9c986",
+  storageBucket: "easyride-9c986.appspot.com",
+  messagingSenderId: "825632191688",
+  appId: "1:825632191688:web:b2bc5cd7671247c50f21fd",
+  measurementId: "G-YQC7YZCHKW"
 };
 
 // Initialize Firebase

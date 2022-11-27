@@ -353,7 +353,11 @@ const Home = ({ navigation }) => {
         onScroll={onScroll}
       >
         {/* Render Saved & Favourite Places */}
-        <FavouritePlaces />
+        <FavouritePlaces
+        home={true}
+        setModalVisible={setPickUpModal}
+        setDestination={setDestination}
+        />
 
         {/* Render Around You */}
         {renderAroundYou()}
@@ -372,6 +376,8 @@ const Home = ({ navigation }) => {
         handlePickUp={handlePickUp}
         setOrigin={setOrigin}
         setDestination={setDestination}
+        origin = {origin}
+        destination = {destination}
       />
 
       <RequestRideModal

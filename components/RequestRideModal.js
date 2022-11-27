@@ -7,7 +7,7 @@ import { FONTS, SIZES, COLORS, icons } from '../constants'
 import LineDivider from './LineDivider';
 
 const SURGE_CHARGE_RATE = 1.5;
-const GOOGLE_MAPS_API_KEY = "AIzaSyBvYHDUXXUAJdn7gDxJgT1mdmqJt22hQFA";
+const GOOGLE_MAPS_API_KEY = "AIzaSyDriS8B8WOcGLA8GWu0iRLeDyZKZ6BsrNw";
 
 const RequestRideModal = ({
   modalVisible, setModalVisible, origin, destination, handleRideBooking, travelInfo
@@ -68,7 +68,7 @@ const RequestRideModal = ({
   useEffect(() => {
     if (!origin || !destination) return;
 
-    mapRef.current?.fitToSuppliedMarkers(["origin", "destination"], {
+    _map.current?.fitToSuppliedMarkers(["origin", "destination"], {
       edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
     });
   }, [origin, destination]);
@@ -91,7 +91,8 @@ const RequestRideModal = ({
               alignItems: 'center',
               marginBottom: -(SIZES.padding * 2),
               marginLeft: SIZES.base,
-              zIndex: 1
+              zIndex: 1,
+              top:50
             }}
             onPress={() => setModalVisible(!modalVisible)}
           >
