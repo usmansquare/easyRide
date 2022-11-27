@@ -1,0 +1,443 @@
+import { StyleSheet, Text, View, Modal, FlatList, TouchableOpacity, Image } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import { LinearGradient } from 'expo-linear-gradient';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapViewDirections from 'react-native-maps-directions';
+import { FONTS, SIZES, COLORS, icons, images } from '../constants'
+import LineDivider from './LineDivider';
+
+const GOOGLE_MAPS_API_KEY = "AIzaSyBvYHDUXXUAJdn7gDxJgT1mdmqJt22hQFA";
+
+const StarReview = ({ rate }) => {
+    const starComponents = []
+    const fullStar = Math.floor(rate)
+    const noStar = Math.floor(5 - rate)
+    const halfStar = 5 - fullStar - noStar
+
+    for (let i = 0; i < fullStar; i++) {
+        starComponents.push(
+            <Image
+                key={`full-${i}`}
+                source={icons.starFull}
+                resizeMode='cover'
+                style={{
+                    width: 20,
+                    height: 20
+                }}
+            />
+        );
+    };
+
+    for (let i = 0; i < halfStar; i++) {
+        starComponents.push(
+            <Image
+                key={`half-${i}`}
+                source={icons.starHalf}
+                resizeMode='cover'
+                style={{
+                    width: 20,
+                    height: 20
+                }}
+            />
+        );
+    };
+
+    for (let i = 0; i < noStar; i++) {
+        starComponents.push(
+            <Image
+                key={`half-${i}`}
+                source={icons.starEmpty}
+                resizeMode='cover'
+                style={{
+                    width: 20,
+                    height: 20
+                }}
+            />
+        );
+    };
+
+    return (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {starComponents}
+            <Text style={{ marginLeft: SIZES.base, color: COLORS.white }}>{rate}</Text>
+        </View>
+    );
+};
+
+const RideModal = ({
+    modalVisible, setModalVisible, origin, destination, travelInfo
+}) => {
+
+    const _map = useRef();
+    const [fromLocation, setFromLocation] = useState(null);
+    const [toLocation, setToLocation] = useState(null);
+    const [region, setRegion] = useState(null);
+    const [isReady, setIsReady] = useState(false);
+    const [angle, setAngle] = useState(0);
+
+    useEffect(() => {
+
+        let fromLoc = {
+            latitude: origin?.location?.lat || 33.6844,
+            longitude: origin?.location?.lng || 73.0479,
+        }
+
+        let toLoc = {
+            latitude: destination?.location?.lat || 33.7715,
+            longitude: destination?.location?.lng || 72.7511,
+        }
+
+        let mapRegion = {
+            latitude: (fromLoc?.latitude + toLoc?.latitude) / 2,
+            longitude: (fromLoc?.longitude + toLoc?.longitude) / 2,
+            latitudeDelta: Math.abs(fromLoc?.latitude - toLoc?.latitude) * 2,
+            longitudeDelta: Math.abs(fromLoc?.longitude - toLoc?.longitude) * 2,
+        }
+
+        setToLocation(toLoc);
+        setFromLocation(fromLoc);
+        setRegion(mapRegion);
+
+    }, [origin, destination]);
+
+    useEffect(() => {
+        if (!origin || !destination) return;
+
+        mapRef.current?.fitToSuppliedMarkers(["origin", "destination"], {
+            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        });
+    }, [origin, destination]);
+
+    const calculateAngle = (coordinates) => {
+        let startLat = coordinates[0]["latitude"];
+        let startLon = coordinates[0]["longitude"];
+        let endLat = coordinates[1]["latitude"];
+        let endLon = coordinates[1]["longitude"]
+        let dx = endLat - startLat;
+        let dy = endLon - startLon;
+
+        return Math.atan2(dy, dx) * 180 / Math.PI;
+    }
+
+    const RenderMarker = () => {
+        return (
+            <Marker
+                coordinate={toLocation}
+                title="Destination"
+                description={destination.description}
+                identifier="destination"
+
+            >
+                <View
+                    style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor: COLORS.white
+                    }}
+                >
+                    <View
+                        style={{
+                            width: 30,
+                            height: 30,
+                            borderRadius: 15,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            backgroundColor: COLORS.primary
+                        }}
+                    >
+                        <Image
+                            source={icons.pin}
+                            style={{
+                                width: 25,
+                                height: 25,
+                                tintColor: COLORS.white
+                            }}
+                        />
+                    </View>
+                </View>
+            </Marker>
+        )
+    }
+
+    const RenderCarIcon = () => {
+        return (
+            <Marker
+                coordinate={fromLocation}
+                title="Origin"
+                description={origin.description}
+                identifier="origin"
+                anchor={{ x: 0.5, y: 0.5 }}
+                flat={true}
+                rotation={angle}
+            >
+                <Image
+                    source={icons.car}
+                    style={{
+                        width: 40,
+                        height: 40
+                    }}
+                />
+
+            </Marker>
+        )
+    }
+
+    return (
+        <Modal
+            animationType='fade'
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => setModalVisible}
+        >
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <MapView
+                        ref={_map}
+                        style={{ flex: 1 }}
+                        provider={PROVIDER_GOOGLE}
+                        initialRegion={region}
+                        mapType="mutedStandard"
+                        showsCompass={true}
+                        showsMyLocationButton={true}
+                        showsScale={true}
+                    >
+                        {origin && destination && (
+                            <MapViewDirections
+                                origin={fromLocation}
+                                destination={toLocation}
+                                apikey={GOOGLE_MAPS_API_KEY}
+                                strokeWidth={3}
+                                strokeColor="blue"
+                                lineDashPattern={[0]}
+                                optimizeWaypoints={true}
+                                onReady={result => {
+                                    //Fit Route Into Map
+                                    if (!isReady) {
+                                        _map.current.fitToCoordinates(result.coordinates, {
+                                            edgePadding: {
+                                                right: (SIZES.width / 20),
+                                                bottom: (SIZES.height / 4),
+                                                left: (SIZES.width / 20),
+                                                top: (SIZES.height / 8)
+                                            }
+                                        })
+                                    }
+                                    //Repositioning The Car
+                                    let nextLoc = {
+                                        latitude: (result.coordinates[0]["latitude"]),
+                                        longitude: (result.coordinates[0]["longitude"])
+                                    }
+
+                                    if (result.coordinates.length > 2) {
+                                        let angle = calculateAngle(result.coordinates);
+                                        setAngle(angle);
+                                    }
+                                    setFromLocation(nextLoc);
+                                    setIsReady(true);
+                                }}
+                            />
+                        )}
+
+                        {origin?.location && (
+                            <RenderCarIcon />
+                        )}
+                        {destination?.location && (
+                            <RenderMarker />
+                        )}
+
+                    </MapView>
+                </View>
+                <View style={styles.footer}>
+                    <View
+                        style={{
+                            flex: .2,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: SIZES.radius,
+                            borderBottomColor: COLORS.transparentBlack4,
+                            borderBottomWidth: 1
+                        }}
+                    >
+                        <Text style={{ ...FONTS.h3, textAlign: 'center', flex: 1 }}>Your driver is coming in 12 mins</Text>
+                    </View>
+                    <View
+                        style={{ flex: .7 }}
+                    >
+                        <View style={{ marginTop: SIZES.radius, width: SIZES.width * .94 }}>
+                            <View
+                                style={{
+                                    marginTop: SIZES.radius,
+                                    paddingHorizontal: SIZES.base,
+                                    paddingVertical: SIZES.radius,
+                                    borderRadius: SIZES.radius,
+                                    backgroundColor: COLORS.white
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <Image
+                                        source={images.banner}
+                                        resizeMode='contain'
+                                        style={{
+                                            width: 45,
+                                            height: 45,
+                                            borderRadius: SIZES.radius
+                                        }}
+                                    />
+                                    <View
+                                        style={{
+                                            flex: 1,
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            marginLeft: SIZES.base
+                                        }}
+                                    >
+                                        <View style={{}}>
+                                            <Text style={{ ...FONTS.h3 }}>Usman Aslam</Text>
+                                            <StarReview rate={4.5} />
+                                        </View>
+                                        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                            <Text style={{ ...FONTS.h4 }} >Vehicle No</Text>
+                                            <Text style={{ ...FONTS.body3, color: COLORS.gray30 }}>ISB 2378</Text>
+                                        </View>
+                                    </View>
+                                </View>
+
+                                <LineDivider lineStyle={{ marginVertical: SIZES.radius }} />
+                                <View>
+
+                                    <View
+                                        style={{ flexDirection: 'row' }}
+                                    >
+                                        <View
+                                            style={{
+                                                width: 50,
+                                                justifyContent: 'center',
+                                                alignItems: 'center'
+                                            }}
+                                        >
+                                            <View
+                                                style={{
+                                                    padding: SIZES.base,
+                                                    borderRadius: SIZES.radius,
+                                                    backgroundColor: COLORS.lightyellow
+                                                }}
+                                            >
+                                                <View
+                                                    style={{
+                                                        width: 15,
+                                                        height: 15,
+                                                        backgroundColor: COLORS.sceondary,
+                                                        borderRadius: SIZES.radius
+                                                    }}
+                                                />
+                                            </View>
+                                        </View>
+                                        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={{ ...FONTS.h3 }}>Wah Cantt</Text>
+                                            <Text style={{ ...FONTS.h4, color: COLORS.gray30 }}>7:45 am</Text>
+                                        </View>
+                                    </View>
+                                    <View
+                                        style={{
+                                            flexDirection: 'row',
+                                            marginTop: 5,
+                                        }}
+                                    >
+                                        <View
+                                            style={{
+                                                width: 50,
+                                                justifyContent: 'center',
+                                                alignItems: 'center'
+                                            }}
+                                        >
+                                            <View
+                                                style={{
+                                                    width: SIZES.radius,
+                                                    height: SIZES.radius,
+                                                    backgroundColor: COLORS.sceondary,
+                                                    borderRadius: 8
+                                                }}
+                                            />
+                                        </View>
+
+                                        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={{ ...FONTS.h3 }}>Islamabad</Text>
+                                            <Text style={{ ...FONTS.h4, color: COLORS.gray30 }}>9:45 pm</Text>
+                                        </View>
+                                    </View>
+
+                                    {/* Vertical Line */}
+                                    <View
+                                        style={{
+                                            position: 'absolute',
+                                            bottom: '13%', left: '6.5%',
+                                            width: 4,
+                                            height: 30,
+                                            backgroundColor: COLORS.sceondary
+                                        }}
+                                    >
+                                    </View>
+                                </View>
+                            </View>
+                        </View>
+                    </View>
+                    <View style={{ flex: .25, paddingHorizontal: SIZES.base, marginTop: SIZES.base }}>
+                        <LinearGradient
+                            style={{ width: '100%', height: '80%', borderRadius: 15, marginTop: SIZES.base }}
+                            colors={[COLORS.sceondary, COLORS.primary]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                        >
+                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ flex: 1, marginHorizontal: SIZES.padding, justifyContent: 'center' }}>
+                                    <Text style={{ ...FONTS.h3 }}>Ride</Text>
+                                </View>
+                                <TouchableOpacity
+                                    style={{ width: 130, height: '80%', marginHorizontal: SIZES.radius }}
+                                    onPress={() => { }}
+                                >
+                                    <LinearGradient
+                                        style={{ flex: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 10 }}
+                                        colors={[COLORS.white, COLORS.transparentWhite4]}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 0 }}
+                                    >
+                                        <Text style={{ ...FONTS.h3 }}>Cancel</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            </View>
+                        </LinearGradient>
+                    </View>
+                </View>
+            </View>
+        </Modal >
+    )
+}
+
+export default RideModal
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#009387'
+    },
+    header: {
+        flex: 5,
+        marginBottom: -SIZES.base
+    },
+    footer: {
+        flex: 4,
+        backgroundColor: '#fff',
+        borderTopLeftRadius: SIZES.radius,
+        borderTopRightRadius: SIZES.radius,
+    }
+})
