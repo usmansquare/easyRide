@@ -6,7 +6,8 @@ import { useSelector } from 'react-redux'
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import { FONTS, SIZES, COLORS, icons } from '../constants'
-import {LineDivider, ProfileValue} from '../components'
+import { LineDivider, ProfileValue } from '../components'
+import { auth, db } from '../firebase'
 
 const SURGE_CHARGE_RATE = 1.5;
 
@@ -15,6 +16,8 @@ const RequestRideModal = ({
 }) => {
 
   const { appTheme } = useSelector((state) => state.themeReducer)
+
+
 
   const ridesData = [
     {
@@ -43,6 +46,57 @@ const RequestRideModal = ({
   const [region, setRegion] = useState(null);
   const [selected, setSelected] = useState(ridesData[0])
 
+  const [uberX, setUberX] = useState(null)
+  const [uberXL, setUberXL] = useState(null)
+  const [uberLUX, setUberLUX] = useState(null)
+
+  useEffect(() => {
+    if (!origin) return;
+
+    setUberX([])
+    setUberXL([])
+    setUberLUX([])
+
+    db.collection("drivers").get().then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        let driver = doc.data()
+        let url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=' + origin.location.lat + '%2C' + origin.location.lng + '&destinations=' + driver.mapInitialRegion.latitude + '%2C' + driver.mapInitialRegion.longitude + '&key=' + GOOGLE_MAPS_API_KEY;
+
+        fetch(url)
+          .then((response) => response.json())
+          .then((data) => {
+            if (driver.rideType === "uberX") {
+              setUberX((previous) => {
+                return [...previous, {
+                  ...driver,
+                  distance: data.rows[0].elements[0].distance,
+                  duration: data.rows[0].elements[0].duration,
+                }]
+              })
+            } else if (driver.rideType === "uberXL") {
+              setUberXL((previous) => {
+                return [...previous, {
+                  ...driver,
+                  distance: data.rows[0].elements[0].distance,
+                  duration: data.rows[0].elements[0].duration,
+                }]
+              })
+            } else {
+              setUberLUX((previous) => {
+                return [...previous, {
+                  ...driver,
+                  distance: data.rows[0].elements[0].distance,
+                  duration: data.rows[0].elements[0].duration,
+                }]
+              })
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          })
+      })
+    });
+  }, [origin])
 
   useEffect(() => {
 
@@ -80,7 +134,7 @@ const RequestRideModal = ({
 
   const renderUberXRides = () => {
     return (
-      <View style ={{ marginTop: SIZES.radius }}>
+      <View style={{ marginTop: SIZES.radius }}>
         <View
           style={{
             padding: SIZES.radius
@@ -91,7 +145,7 @@ const RequestRideModal = ({
             fontSize: 20,
             color: appTheme?.textColor
           }}>Uber X</Text>
-           <LineDivider
+          <LineDivider
             lineStyle={{
               width: 45,
               height: 2,
@@ -100,29 +154,38 @@ const RequestRideModal = ({
             }}
           />
         </View>
-        <View>
-          {
-            ridesData.map((item, index) => {
-              return (
-                <ProfileValue
-                  key={`uberX-${index}`}
-                  icon={icons.taxi_icon}
-                  label={"Danish Aslam"}
-                  value={"ISB 2378, 12 mins away from you"}
-                  containerStyle={styles.profileContainer}
-                  onPress={() => { }}
-                />
-              )
-            })
-          }
-        </View>
+
+        {
+          uberX === null  || uberX.length == 0 ?
+            <View style={{ marginTop: SIZES.radius, paddingHorizontal: SIZES.radius }}>
+              <Text style={{ ...FONTS.body3 }}>No Uber X Ride Available</Text>
+            </View>
+            : <View>
+              {
+                uberX.map((item, index) => {
+                  return (
+                    <ProfileValue
+                      key={`uberX-${index}`}
+                      icon={icons.taxi_icon}
+                      label={item.name}
+                      value={`${item.vehicle.vehicleNo}, ${item.duration.text} away from you`}
+                      containerStyle={styles.profileContainer }
+                      selected = { selected?.vehicle?.vehicleNo == item.vehicle.vehicleNo ? true: false}
+                      onPress={() => setSelected(item)}
+                    />
+                  )
+                })
+              }
+            </View>
+        }
+
       </View>
     );
   };
 
   const renderUberXLRides = () => {
     return (
-      <View  style ={{ marginTop: SIZES.radius }}>
+      <View style={{ marginTop: SIZES.radius }}>
         <View
           style={{
             padding: SIZES.radius
@@ -133,7 +196,7 @@ const RequestRideModal = ({
             fontSize: 20,
             color: appTheme?.textColor
           }}>Uber XL</Text>
-           <LineDivider
+          <LineDivider
             lineStyle={{
               width: 45,
               height: 2,
@@ -142,29 +205,37 @@ const RequestRideModal = ({
             }}
           />
         </View>
-        <View>
-          {
-            ridesData.map((item, index) => {
-              return (
-                <ProfileValue
-                  key={`uberXL-${index}`}
-                  icon={icons.taxi_icon}
-                  label={"Danish Aslam"}
-                  value={"ISB 2378, Wah Cantt"}
-                  containerStyle={styles.profileContainer}
-                  onPress={() => { }}
-                />
-              )
-            })
-          }
-        </View>
+        {
+          uberXL === null  || uberXL.length == 0?
+            <View style={{ marginTop: SIZES.radius, paddingHorizontal: SIZES.radius }}>
+              <Text style={{ ...FONTS.body3 }}>No Uber XL Ride Available</Text>
+            </View>
+            : <View>
+              {
+                uberXL.map((item, index) => {
+                  return (
+                    <ProfileValue
+                      key={`uberXL-${index}`}
+                      icon={icons.taxi_icon}
+                      label={item?.name}
+                      value={`${item.vehicle.vehicleNo}, ${item.duration.text} away from you`}
+                      containerStyle={styles.profileContainer}
+                      selected = { selected?.vehicle?.vehicleNo == item.vehicle.vehicleNo ? true: false}
+                      onPress={() => setSelected(item)}
+                    />
+                  )
+                })
+              }
+            </View>
+        }
+
       </View>
     );
   };
 
   const renderUberLUXRides = () => {
     return (
-      <View  style ={{ marginTop: SIZES.radius }}>
+      <View style={{ marginTop: SIZES.radius }}>
         <View
           style={{
             padding: SIZES.radius
@@ -184,22 +255,29 @@ const RequestRideModal = ({
             }}
           />
         </View>
-        <View>
-          {
-            ridesData.map((item, index) => {
-              return (
-                <ProfileValue
-                  key={`uberLUX-${index}`}
-                  icon={icons.taxi_icon}
-                  label={"Danish Aslam"}
-                  value={"ISB 2378, Wah Cantt"}
-                  containerStyle={styles.profileContainer}
-                  onPress={() => { }}
-                />
-              )
-            })
-          }
-        </View>
+        {
+          uberLUX === null || uberLUX.length == 0 ?
+            <View style={{ marginTop: SIZES.radius, paddingHorizontal: SIZES.radius }}>
+              <Text style={{ ...FONTS.body3 }}>No Uber LUX Ride Available</Text>
+            </View>
+            : <View>
+              {
+                uberLUX.map((item, index) => {
+                  return (
+                    <ProfileValue
+                      key={`uberLUX-${index}`}
+                      icon={icons.taxi_icon}
+                      label={item?.name}
+                      value={`${item.vehicle.vehicleNo}, ${item.duration.text} away from you`}
+                      containerStyle={styles.profileContainer}
+                      selected = { selected?.vehicle?.vehicleNo == item.vehicle.vehicleNo ? true: false}
+                      onPress={() => setSelected(item)}
+                    />
+                  )
+                })
+              }
+            </View>
+        }
       </View>
     )
   }
@@ -294,47 +372,15 @@ const RequestRideModal = ({
           <View
             style={{ flex: .9 }}
           >
-            {/* <FlatList
-              data={ridesData}
-              keyExtractor={(item) => `ride-${item.id}`}
-              ItemSeparatorComponent={() => <LineDivider />}
-              renderItem={({ item, index }) => {
-                return (
-                  <TouchableOpacity
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      paddingHorizontal: SIZES.base,
-                      backgroundColor: item.id == selected?.id ? COLORS.gray20 : COLORS.white
-                    }}
-                    onPress={() => setSelected(item)}
-                  >
-                    <Image
-                      style={{
-                        width: 85,
-                        height: 85,
-                        resizeMode: "contain",
-                      }}
-                      source={{ uri: item.image }}
-                    />
-                    <View style={{ marginLeft: SIZES.base }}>
-                      <Text style={{ ...FONTS.h3 }}>{item.title}</Text>
-                      <Text>{travelInfo?.duration.text}</Text>
-                    </View>
-                    <Text style={{ ...FONTS.body3, flex: 1, textAlign: 'right' }}>
-                      {(travelInfo?.duration.value || 0 * SURGE_CHARGE_RATE * item.multiplier) / 100}
-                    </Text>
-                  </TouchableOpacity>
-                )
-              }}
-            /> */}
             <ScrollView
               style={{ flex: 1 }}
             >
               {/* Render UberX Rides */}
               {renderUberXRides()}
+
               {/* Render UberXL Rides */}
               {renderUberXLRides()}
+
               {/* Render Uber LUX */}
               {renderUberLUXRides()}
             </ScrollView>
@@ -348,7 +394,9 @@ const RequestRideModal = ({
             >
               <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{ flex: 1, marginHorizontal: SIZES.padding, justifyContent: 'center' }}>
-                  <Text style={{ ...FONTS.h3 }}>{selected?.title}</Text>
+                  <Text style={{ ...FONTS.h3 }}>
+                    {`${selected?.vehicle?.vehicleNo ?? 'ISB ....'}, ${(selected?.duration?.value || 0 * SURGE_CHARGE_RATE * selected?.multiplier) / 100} PKR`}
+                    </Text>
                 </View>
                 <TouchableOpacity
                   style={{ width: 130, height: '80%', marginHorizontal: SIZES.radius }}

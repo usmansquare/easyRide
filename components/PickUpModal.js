@@ -193,16 +193,20 @@ const PickUpModal = ({
                             </View>
 
                             {/* Vertical Line */}
-                            <View
-                                style={{
-                                    position: 'absolute',
-                                    bottom: '50%', left: '12%',
-                                    width: 3,
-                                    height: 65,
-                                    backgroundColor: COLORS.sceondary
-                                }}
-                            >
-                            </View>
+                            {
+                                origin && destination &&
+                                <View
+                                    style={{
+                                        position: 'absolute',
+                                        bottom: '50%', left: '12%',
+                                        width: 3,
+                                        height: 65,
+                                        backgroundColor: COLORS.sceondary
+                                    }}
+                                >
+                                </View>
+                            }
+
 
                             <TouchableOpacity
                                 style={{
@@ -224,6 +228,7 @@ const PickUpModal = ({
                             </TouchableOpacity>
 
                         </View>
+
                         <LineDivider
                             lineStyle={{
                                 height: 5,
