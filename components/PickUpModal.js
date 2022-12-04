@@ -125,6 +125,7 @@ const PickUpModal = ({
                                     </View>
                                 </View>
                                 <GooglePlacesAutocomplete
+                                    ref={originRef}
                                     nearbyPlacesAPI="GooglePlacesSearch"
                                     debounce={400}
                                     placeholder="Where from?"

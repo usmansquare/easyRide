@@ -6,6 +6,7 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import { FONTS, SIZES, COLORS, icons, images } from '../constants'
 import LineDivider from './LineDivider';
+import { db, auth } from '../firebase';
 
 
 const StarReview = ({ rate }) => {
@@ -65,7 +66,7 @@ const StarReview = ({ rate }) => {
 };
 
 const RideModal = ({
-    modalVisible, setModalVisible, origin, destination, travelInfo
+    modalVisible, setModalVisible, travelInfo
 }) => {
 
     const _map = useRef();
@@ -74,17 +75,38 @@ const RideModal = ({
     const [region, setRegion] = useState(null);
     const [isReady, setIsReady] = useState(false);
     const [angle, setAngle] = useState(0);
+    const [rideDetails, setRideDetails] = useState(null)
+    const [driver, setDriver] = useState(null)
+
+    useEffect(() => {
+        let rides = []
+
+        db.collection('rides').where('userID', '==', auth.currentUser.uid).get().then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                console.log("Ride ", doc.data())
+                rides.push(doc.data())
+            });
+            setRideDetails(rides[0])
+        })
+    }, []);
 
     useEffect(() => {
 
+        if(!rideDetails) return;
+        
+        db.collection('drivers').doc(rideDetails?.driverID).get()
+            .then((doc) => {
+                setDriver(doc.data())
+            })
+
         let fromLoc = {
-            latitude: origin?.location?.lat || 33.6844,
-            longitude: origin?.location?.lng || 73.0479,
+            latitude: rideDetails?.origin?.location?.lat || 33.6844,
+            longitude: rideDetails?.origin?.location?.lng || 73.0479,
         }
 
         let toLoc = {
-            latitude: destination?.location?.lat || 33.7715,
-            longitude: destination?.location?.lng || 72.7511,
+            latitude: rideDetails?.destination?.location?.lat || 33.7715,
+            longitude: rideDetails?.destination?.location?.lng || 72.7511,
         }
 
         let mapRegion = {
@@ -98,15 +120,23 @@ const RideModal = ({
         setFromLocation(fromLoc);
         setRegion(mapRegion);
 
-    }, [origin, destination]);
+    }, [rideDetails])
 
     useEffect(() => {
-        if (!origin || !destination) return;
+        if (!fromLocation || !toLocation) return;
 
         _map.current?.fitToSuppliedMarkers(["origin", "destination"], {
             edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
         });
-    }, [origin, destination]);
+
+    }, [fromLocation, toLocation]);
+
+    const getDriverTime = async () => {
+        const url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=' + rideDetails?.origin.location.lat + '%2C' + rideDetails?.origin.location.lng + '&destinations=' + driver.mapInitialRegion.latitude + '%2C' + driver.mapInitialRegion.longitude + '&key=' + GOOGLE_MAPS_API_KEY;
+        const response = await fetch(url);
+        const data = await response.json();
+        (data.rows[0].elements[0]);
+    };
 
     const calculateAngle = (coordinates) => {
         let startLat = coordinates[0]["latitude"];
@@ -124,7 +154,7 @@ const RideModal = ({
             <Marker
                 coordinate={toLocation}
                 title="Destination"
-                description={destination.description}
+                description={rideDetails?.destination?.description}
                 identifier="destination"
 
             >
@@ -167,7 +197,7 @@ const RideModal = ({
             <Marker
                 coordinate={fromLocation}
                 title="Origin"
-                description={origin.description}
+                description={rideDetails?.origin?.description}
                 identifier="origin"
                 anchor={{ x: 0.5, y: 0.5 }}
                 flat={true}
@@ -203,7 +233,7 @@ const RideModal = ({
                         showsMyLocationButton={true}
                         showsScale={true}
                     >
-                        {origin && destination && (
+                        {fromLocation && toLocation &&
                             <MapViewDirections
                                 origin={fromLocation}
                                 destination={toLocation}
@@ -238,15 +268,9 @@ const RideModal = ({
                                     setIsReady(true);
                                 }}
                             />
-                        )}
-
-                        {origin?.location && (
-                            <RenderCarIcon />
-                        )}
-                        {destination?.location && (
-                            <RenderMarker />
-                        )}
-
+                        }
+                        {fromLocation && <RenderCarIcon />}
+                        {toLocation && <RenderMarker />}
                     </MapView>
                 </View>
                 <View style={styles.footer}>
@@ -300,12 +324,12 @@ const RideModal = ({
                                         }}
                                     >
                                         <View style={{}}>
-                                            <Text style={{ ...FONTS.h3 }}>Usman Aslam</Text>
+                                            <Text style={{ ...FONTS.h3 }}>{driver?.name ?? "..."}</Text>
                                             <StarReview rate={4.5} />
                                         </View>
                                         <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                            <Text style={{ ...FONTS.h4 }} >Vehicle No</Text>
-                                            <Text style={{ ...FONTS.body3, color: COLORS.gray30 }}>ISB 2378</Text>
+                                            <Text style={{ ...FONTS.body3 }} >{driver?.rideType}</Text>
+                                            <Text style={{ ...FONTS.body3 }}>{driver?.vehicle?.vehicleNo ?? "..."}</Text>
                                         </View>
                                     </View>
                                 </View>
@@ -341,8 +365,8 @@ const RideModal = ({
                                             </View>
                                         </View>
                                         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <Text style={{ ...FONTS.h3 }}>Wah Cantt</Text>
-                                            <Text style={{ ...FONTS.h4, color: COLORS.gray30 }}>7:45 am</Text>
+                                            <Text style={{ ...FONTS.body4 }}>{rideDetails?.origin?.description ?? "..."}</Text>
+                                            {/* <Text style={{ ...FONTS.h4, color: COLORS.gray30 }}>{rideDetails?.bookingTime ?? "..."}</Text> */}
                                         </View>
                                     </View>
                                     <View
@@ -369,8 +393,8 @@ const RideModal = ({
                                         </View>
 
                                         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <Text style={{ ...FONTS.h3 }}>Islamabad</Text>
-                                            <Text style={{ ...FONTS.h4, color: COLORS.gray30 }}>9:45 pm</Text>
+                                            <Text style={{ ...FONTS.body4 }}>{rideDetails?.destination?.description ?? "..."}</Text>
+                                            {/* <Text style={{ ...FONTS.h4, color: COLORS.gray30 }}>{`${rideDetails?.duration?.text} take to reach`}</Text> */}
                                         </View>
                                     </View>
 

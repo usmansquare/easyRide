@@ -13,7 +13,8 @@ const ProfileValue = ({ containerStyle, icon, label, value, onPress, selected=fa
                 alignItems: 'center',
                 flexDirection: 'row',
                 backgroundColor: selected ? COLORS.primary : COLORS.transparent,  
-                ...containerStyle
+                borderWidth: selected ? 0 : 1,
+                ...containerStyle,
             }}
             onPress={onPress}
         >

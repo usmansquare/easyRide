@@ -91,6 +91,7 @@ export const darkTheme = {
     searchBarColor: COLORS.gray40,
     checkBoxColor: "#F1CD7C",
     backgroundColor: 'rgba(0, 0, 0, 0.93)',
+    LineBorderColor: COLORS.gray20,
     searchBarBackground: COLORS.gray90,
     tabBackgroundColor: "#33354E",
 
@@ -104,6 +105,7 @@ export const lightTheme = {
     searchBarColor:COLORS.black,
     backgroundColor: COLORS.white,
     checkBoxColor: COLORS.primary,
+    LineBorderColor: COLORS.transparentBlack4, 
     searchBarBackground:COLORS.white,
     tabBackgroundColor: COLORS.primary,
 

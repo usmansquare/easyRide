@@ -2,49 +2,28 @@ import { StyleSheet, Text, View, Modal, FlatList, TouchableOpacity, Image, Scrol
 import React, { useEffect, useRef, useState } from 'react'
 import { LinearGradient } from 'expo-linear-gradient';
 import { GOOGLE_MAPS_API_KEY } from '@env'
+import Moment from 'moment'
 import { useSelector } from 'react-redux'
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import { FONTS, SIZES, COLORS, icons } from '../constants'
 import { LineDivider, ProfileValue } from '../components'
 import { auth, db } from '../firebase'
+import { MapStyle } from '../styles'
 
 const SURGE_CHARGE_RATE = 1.5;
 
 const RequestRideModal = ({
-  modalVisible, setModalVisible, origin, destination, handleRideBooking, travelInfo
+  modalVisible, setModalVisible, origin, destination, travelInfo
 }) => {
-
+  Moment.locale('en')
   const { appTheme } = useSelector((state) => state.themeReducer)
-
-
-
-  const ridesData = [
-    {
-      id: "Uber-X-123",
-      title: "UberX",
-      multiplier: 1,
-      image: "https://links.papareact.com/3pn",
-    },
-    {
-      id: "Uber-XL-456",
-      title: "Uber XL",
-      multiplier: 1.2,
-      image: "https://links.papareact.com/5w8",
-    },
-    {
-      id: "Uber-LUX-789",
-      title: "Uber LUX",
-      multiplier: 1.75,
-      image: "https://links.papareact.com/7pf",
-    },
-  ];
 
   const _map = useRef();
   const [fromLocation, setFromLocation] = useState(null);
   const [toLocation, setToLocation] = useState(null);
   const [region, setRegion] = useState(null);
-  const [selected, setSelected] = useState(ridesData[0])
+  const [selected, setSelected] = useState(null)
 
   const [uberX, setUberX] = useState(null)
   const [uberXL, setUberXL] = useState(null)
@@ -132,6 +111,92 @@ const RequestRideModal = ({
 
 
 
+  const handleRideBooking = async () => {
+
+    // try {
+    //   const response = await fetch(`${API_URL}/create-payment-intent`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   });
+
+    //   const data = await response.json();
+    //   if (!response.ok) {
+    //     setModalVisible(!modalVisible)
+    //     setAlert({
+    //       title: "Alert",
+    //       message: data.message
+    //     })
+    //     return
+    //   }
+
+    //   const clientSecret = data.clientSecret;
+    //   const initSheet = await initPaymentSheet({
+    //     paymentIntentClientSecret: clientSecret,
+    //     merchantDisplayName: 'Usman Aslam',
+    //   });
+
+    //   if (initSheet.error) {
+    //     setModalVisible(!modalVisible)
+    //     setAlert({
+    //       title: "Error",
+    //       message: initSheet.error.message
+    //     })
+    //     return
+    //   }
+
+    //   const presentSheet = await presentPaymentSheet({
+    //     clientSecret,
+    //   });
+
+    //   if (presentSheet.error) {
+    //     setModalVisible(!modalVisible)
+    //     setAlert({
+    //       title: "Error",
+    //       message: presentSheet.error.message
+    //     })
+    //     return
+    //   }
+    //   setModalVisible(!modalVisible)
+    //   setAlert({
+    //     title: "Alert",
+    //     message: "Payment Transaction Successfull, Thank You!"
+    //   })
+
+    // } catch (error) {
+    //   console.error(error)
+    //   setModalVisible(!modalVisible)
+    //   setAlert({
+    //     title: "Error",
+    //     message: error.message
+    //   })
+    // }
+
+
+    let rideDetails = {
+      driverID: selected?.id,
+      userID: auth.currentUser.uid,
+      duration: selected?.duration,
+      distance: selected?.distance,
+      origin: origin,
+      destination: destination,
+      price: (selected?.duration?.value || 0 * SURGE_CHARGE_RATE * selected?.multiplier) / 100,
+      bookingDate: Moment(new Date()).format('YYYY-MM-DD'),
+      bookingTime: Moment(new Date()).format('hh:mm'),
+      status: "upcoming"
+    }
+    
+    db.collection("rides").doc().set(rideDetails)
+
+    setModalVisible(!modalVisible)
+    setFavouritePlaces((previous) => {
+      return previous.map((p, i) => {
+        return { ...p, selected: false }
+      })
+    })
+  }
+
   const renderUberXRides = () => {
     return (
       <View style={{ marginTop: SIZES.radius }}>
@@ -156,9 +221,9 @@ const RequestRideModal = ({
         </View>
 
         {
-          uberX === null  || uberX.length == 0 ?
+          uberX === null || uberX.length == 0 ?
             <View style={{ marginTop: SIZES.radius, paddingHorizontal: SIZES.radius }}>
-              <Text style={{ ...FONTS.body3 }}>No Uber X Ride Available</Text>
+              <Text style={{ ...FONTS.body3, color: appTheme?.textColor }}>No Uber X Ride Available</Text>
             </View>
             : <View>
               {
@@ -169,8 +234,8 @@ const RequestRideModal = ({
                       icon={icons.taxi_icon}
                       label={item.name}
                       value={`${item.vehicle.vehicleNo}, ${item.duration.text} away from you`}
-                      containerStyle={styles.profileContainer }
-                      selected = { selected?.vehicle?.vehicleNo == item.vehicle.vehicleNo ? true: false}
+                      containerStyle={styles.profileContainer}
+                      selected={selected?.vehicle?.vehicleNo == item.vehicle.vehicleNo ? true : false}
                       onPress={() => setSelected(item)}
                     />
                   )
@@ -206,9 +271,9 @@ const RequestRideModal = ({
           />
         </View>
         {
-          uberXL === null  || uberXL.length == 0?
+          uberXL === null || uberXL.length == 0 ?
             <View style={{ marginTop: SIZES.radius, paddingHorizontal: SIZES.radius }}>
-              <Text style={{ ...FONTS.body3 }}>No Uber XL Ride Available</Text>
+              <Text style={{ ...FONTS.body3,  color: appTheme?.textColor }}>No Uber XL Ride Available</Text>
             </View>
             : <View>
               {
@@ -220,7 +285,7 @@ const RequestRideModal = ({
                       label={item?.name}
                       value={`${item.vehicle.vehicleNo}, ${item.duration.text} away from you`}
                       containerStyle={styles.profileContainer}
-                      selected = { selected?.vehicle?.vehicleNo == item.vehicle.vehicleNo ? true: false}
+                      selected={selected?.vehicle?.vehicleNo == item.vehicle.vehicleNo ? true : false}
                       onPress={() => setSelected(item)}
                     />
                   )
@@ -258,7 +323,7 @@ const RequestRideModal = ({
         {
           uberLUX === null || uberLUX.length == 0 ?
             <View style={{ marginTop: SIZES.radius, paddingHorizontal: SIZES.radius }}>
-              <Text style={{ ...FONTS.body3 }}>No Uber LUX Ride Available</Text>
+              <Text style={{ ...FONTS.body3, color: appTheme?.textColor }}>No Uber LUX Ride Available</Text>
             </View>
             : <View>
               {
@@ -270,7 +335,7 @@ const RequestRideModal = ({
                       label={item?.name}
                       value={`${item.vehicle.vehicleNo}, ${item.duration.text} away from you`}
                       containerStyle={styles.profileContainer}
-                      selected = { selected?.vehicle?.vehicleNo == item.vehicle.vehicleNo ? true: false}
+                      selected={selected?.vehicle?.vehicleNo == item.vehicle.vehicleNo ? true : false}
                       onPress={() => setSelected(item)}
                     />
                   )
@@ -320,10 +385,7 @@ const RequestRideModal = ({
             style={{ flex: 1 }}
             provider={PROVIDER_GOOGLE}
             initialRegion={region}
-            mapType="mutedStandard"
-            showsCompass={true}
-            showsMyLocationButton={true}
-            showsScale={true}
+            customMapStyle={appTheme?.name == "dark" ? MapStyle : null}
           >
             {fromLocation && toLocation && (
               <MapViewDirections
@@ -356,18 +418,28 @@ const RequestRideModal = ({
 
           </MapView>
         </View>
-        <View style={styles.footer}>
+        <View style={{
+          backgroundColor: appTheme?.backgroundColor,
+          ...styles.footer
+        }}
+        >
           <View
             style={{
               flex: .2,
               flexDirection: 'row',
               alignItems: 'center',
               paddingHorizontal: SIZES.radius,
-              borderBottomColor: COLORS.transparentBlack4,
+              borderBottomColor: appTheme?.LineBorderColor,
               borderBottomWidth: 1
             }}
           >
-            <Text style={{ ...FONTS.h3, textAlign: 'center', flex: 1 }}>Select a Ride - {travelInfo?.distance?.text}</Text>
+            <Text style={{
+              flex: 1,
+              textAlign: 'center',
+              color: appTheme?.textColor,
+              ...FONTS.h3,  
+            }}
+            >Select a Ride - {travelInfo?.distance?.text}</Text>
           </View>
           <View
             style={{ flex: .9 }}
@@ -396,7 +468,7 @@ const RequestRideModal = ({
                 <View style={{ flex: 1, marginHorizontal: SIZES.padding, justifyContent: 'center' }}>
                   <Text style={{ ...FONTS.h3 }}>
                     {`${selected?.vehicle?.vehicleNo ?? 'ISB ....'}, ${(selected?.duration?.value || 0 * SURGE_CHARGE_RATE * selected?.multiplier) / 100} PKR`}
-                    </Text>
+                  </Text>
                 </View>
                 <TouchableOpacity
                   style={{ width: 130, height: '80%', marginHorizontal: SIZES.radius }}
@@ -433,7 +505,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     flex: 6,
-    backgroundColor: '#fff',
     borderTopLeftRadius: SIZES.radius,
     borderTopRightRadius: SIZES.radius,
   },
@@ -443,7 +514,6 @@ const styles = StyleSheet.create({
     marginHorizontal: SIZES.radius,
     paddingHorizontal: SIZES.radius,
     borderRadius: SIZES.radius,
-    borderWidth: 1,
     borderColor: COLORS.gray20
   }
 })

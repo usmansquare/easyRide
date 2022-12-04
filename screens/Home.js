@@ -33,7 +33,7 @@ const Home = ({ navigation }) => {
   const dispatch = useDispatch()
 
   const [pickUpModal, setPickUpModal] = useState(false)
-  const [rideModal, setRideModal] = useState(false)
+  const [rideModal, setRideModal] = useState(true)
   const [requestRideModal, setRequestRideModal] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
 
@@ -412,7 +412,6 @@ const Home = ({ navigation }) => {
         destination={destination}
         modalVisible={requestRideModal}
         setModalVisible={setRequestRideModal}
-        handleRideBooking={handleRideBooking}
         travelInfo={travelInfo}
       />
 
