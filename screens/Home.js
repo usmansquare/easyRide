@@ -11,7 +11,7 @@ import * as Location from 'expo-location'
 import { toggleTheme } from '../actions'
 import { useSelector, useDispatch } from 'react-redux'
 import { COLORS, FONTS, SIZES, icons, images } from '../constants'
-import { LineDivider, CustomAlert, FavouritePlaces, PickUpModal, RequestRideModal, RideModal } from '../components';
+import { LineDivider, CustomAlert, FavouritePlaces, PickUpModal, RequestRideModal, RideModal, PaymentMode } from '../components';
 import { ridersAround } from '../utils';
 import { MapStyle } from '../styles'
 import { auth, db } from '../firebase'
@@ -33,19 +33,22 @@ const Home = ({ navigation }) => {
   const dispatch = useDispatch()
 
   const [pickUpModal, setPickUpModal] = useState(false)
-  const [rideModal, setRideModal] = useState(true)
+  const [rideModal, setRideModal] = useState(false)
   const [requestRideModal, setRequestRideModal] = useState(false)
-  const [modalVisible, setModalVisible] = useState(false)
-
-  const [alert, setAlert] = useState({
-    title: '',
-    message: ''
-  });
+  const [paymentModeModal, setPaymentModeModal] = useState(false)
 
   const [origin, setOrigin] = useState(null)
   const [destination, setDestination] = useState(null)
   const [travelInfo, setTravelInfo] = useState(null)
   const [favouritePlaces, setFavouritePlaces] = useState(null);
+  const [paymentMode, setPaymentMode] = useState({})
+  const [rideDetails, setRideDetails] = useState({})
+
+  const [alertModal, setAlertModal] = useState(false)
+  const [alert, setAlert] = useState({
+    title: '',
+    message: ''
+  });
 
   const onScroll = useAnimatedScrollHandler((event) => {
     scrollY.value = event.contentOffset.y
@@ -121,67 +124,140 @@ const Home = ({ navigation }) => {
   };
 
   const handleRideBooking = async () => {
-    setRideModal(!rideModal)
 
-    // try {
-    //   const response = await fetch(`${API_URL}/create-payment-intent`, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //   });
+    if (paymentMode?.text == "By Cash") {
+      setAlertModal(!alertModal)
+      setAlert({
+        title: "Alert",
+        message: "Ride Booked Successfully, Have a nice journey!"
+      })
+      saveToDB()
+    }
+    else if (paymentMode?.text == "By Wallet") {
 
-    //   const data = await response.json();
-    //   if (!response.ok) {
-    //     setModalVisible(!modalVisible)
-    //     setAlert({
-    //       title: "Alert",
-    //       message: data.message
-    //     })
-    //     return
-    //   }
+      db.collection("passengers").doc(auth.currentUser.uid).get()
+        .then((doc) => {
+          if ((doc.data().wallet - rideDetails?.price) > 0) {
+            db.collection("passengers").doc(auth.currentUser.uid).update({
+              wallet: doc.data().wallet - rideDetails?.price
+            })
+              .then(() => {
+                console.log("Document successfully updated!");
+                saveToDB()
+                setAlertModal(!alertModal)
+                setAlert({
+                  title: "Alert",
+                  message: "Payment Transaction Successfull, Thank You!"
+                })
+              })
+              .catch((error) => {
+                console.error("Error updating document: ", error);
+              });
+          } else {
+            setAlertModal(!alertModal)
+            setAlert({
+              title: "Error",
+              message: "Payment Transaction Failed, Not Enough Amount!"
+            })
+          }
+        })
+        .catch((error) => {
+          console.error("Error updating document: ", error);
+        });
+    }
+    else if (paymentMode?.text == "By Card") {
+      try {
+        const response = await fetch(`${API_URL}/create-payment-intent`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-    //   const clientSecret = data.clientSecret;
-    //   const initSheet = await initPaymentSheet({
-    //     paymentIntentClientSecret: clientSecret,
-    //     merchantDisplayName: 'Usman Aslam',
-    //   });
+        const data = await response.json();
+        if (!response.ok) {
+          setModalVisible(!modalVisible)
+          setAlert({
+            title: "Alert",
+            message: data.message
+          })
+          return
+        }
 
-    //   if (initSheet.error) {
-    //     setModalVisible(!modalVisible)
-    //     setAlert({
-    //       title: "Error",
-    //       message: initSheet.error.message
-    //     })
-    //     return
-    //   }
+        const clientSecret = data.clientSecret;
+        const initSheet = await initPaymentSheet({
+          paymentIntentClientSecret: clientSecret,
+          merchantDisplayName: 'Usman Aslam',
+        });
 
-    //   const presentSheet = await presentPaymentSheet({
-    //     clientSecret,
-    //   });
+        if (initSheet.error) {
+          setModalVisible(!modalVisible)
+          setAlert({
+            title: "Error",
+            message: initSheet.error.message
+          })
+          return
+        }
 
-    //   if (presentSheet.error) {
-    //     setModalVisible(!modalVisible)
-    //     setAlert({
-    //       title: "Error",
-    //       message: presentSheet.error.message
-    //     })
-    //     return
-    //   }
-    //   setModalVisible(!modalVisible)
-    //   setAlert({
-    //     title: "Alert",
-    //     message: "Payment Transaction Successfull, Thank You!"
-    //   })
+        const presentSheet = await presentPaymentSheet({
+          clientSecret,
+        });
 
-    // } catch (error) {
-    //   console.error(error)
-    //   setModalVisible(!modalVisible)
-    //   setAlert({
-    //     title: "Error",
-    //     message: error.message
-    //   })
-    // }
+        if (presentSheet.error) {
+          setModalVisible(!modalVisible)
+          setAlert({
+            title: "Error",
+            message: presentSheet.error.message
+          })
+          return
+        }
+        setModalVisible(!modalVisible)
+        setAlert({
+          title: "Alert",
+          message: "Payment Transaction Successfull, Thank You!"
+        })
+        saveToDB()
+
+      } catch (error) {
+        console.error(error)
+        setModalVisible(!modalVisible)
+        setAlert({
+          title: "Error",
+          message: error.message
+        })
+      }
+    }
+
+    setFavouritePlaces((previous) => {
+      return previous.map((p, i) => {
+        return { ...p, selected: false }
+      })
+    })
+
+  }
+
+  const saveToDB = () => {
+
+    db.collection("rides").add({
+      paymentMode: paymentMode?.text,
+      ...rideDetails
+    })
+      .then((docRef) => {
+
+        db.collection("rides").doc(docRef.id).update({
+          id: docRef.id
+        })
+          .then(() => {
+            setRequestRideModal(!requestRideModal)
+            console.log("Document successfully updated!");
+          })
+          .catch((error) => {
+            console.error("Error updating document: ", error);
+          });
+      })
+      .catch((error) => {
+        console.error("Error adding document: ", error);
+      })
   }
 
   const toggleThemeHandler = () => {
@@ -388,13 +464,6 @@ const Home = ({ navigation }) => {
         {renderAroundYou()}
       </AnimatedScrollView>
 
-      <CustomAlert
-        title={alert.title}
-        message={alert.message}
-        modalVisible={modalVisible}
-        setModalVisible={() => setModalVisible(!modalVisible)}
-      />
-
       <PickUpModal
         origin={origin}
         destination={destination}
@@ -413,6 +482,9 @@ const Home = ({ navigation }) => {
         modalVisible={requestRideModal}
         setModalVisible={setRequestRideModal}
         travelInfo={travelInfo}
+        setRideDetails={setRideDetails}
+        handleRideBooking={handleRideBooking}
+        setPaymentModeModal={setPaymentModeModal}
       />
 
       <RideModal
@@ -421,6 +493,21 @@ const Home = ({ navigation }) => {
         modalVisible={rideModal}
         setModalVisible={setRideModal}
         travelInfo={travelInfo}
+      />
+
+      <PaymentMode
+        selectedMode={paymentMode}
+        setSelectedMode={setPaymentMode}
+        modalVisible={paymentModeModal}
+        setModalVisible={setPaymentModeModal}
+        handleRideBooking={handleRideBooking}
+      />
+
+      <CustomAlert
+        title={alert.title}
+        message={alert.message}
+        modalVisible={alertModal}
+        setModalVisible={() => setAlertModal(!alertModal)}
       />
 
     </View>
@@ -441,3 +528,14 @@ const styles = StyleSheet.create({
     elevation: 5
   }
 })
+
+// ----- Code to set Favourite Places -----
+// db.collection("passengers").doc(auth.currentUser.uid).collection("places").add(doc.data())
+// .then((docRef) => {
+//     console.log("Document written with ID: ", docRef.id);
+//     db.collection("passengers").doc(auth.currentUser.uid).collection("places").doc(docRef.id)
+//     .update({
+//       id: docRef.id
+//     })
+
+// })

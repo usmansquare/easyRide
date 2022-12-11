@@ -115,7 +115,7 @@ const TabsScreen = () => (
                 tabBarIcon: ({ focused }) => {
                     let tintColor = focused ? COLORS.sceondary : COLORS.white
                     return (
-                        <TabBarIcon icon={icons.notification} tintColor={tintColor} />
+                        <TabBarIcon icon={icons.car} tintColor={tintColor} />
                     )
                 },
             }}
@@ -143,7 +143,7 @@ const TabsScreen = () => (
                 tabBarIcon: ({ focused }) => {
                     let tintColor = focused ? COLORS.sceondary : COLORS.white
                     return (
-                        <TabBarIcon icon={icons.notification} tintColor={tintColor} />
+                        <TabBarIcon icon={icons.customer} tintColor={tintColor} />
                     )
                 }
             }}

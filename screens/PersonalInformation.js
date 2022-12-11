@@ -35,7 +35,7 @@ const PersonalInformation = ({ navigation }) => {
 
     useEffect(() => {
         const userID = auth.currentUser.uid
-        var docRef = db.collection("users").doc(userID);
+        var docRef = db.collection("passengers").doc(userID);
 
         docRef.get().then((doc) => {
             if (doc.exists) {
@@ -112,7 +112,7 @@ const PersonalInformation = ({ navigation }) => {
             } else {
                 const userID = auth.currentUser.uid;
                 var citiesRef = db.collection("passengers");
-                citiesRef.doc(userID).set(personalInFo);
+                citiesRef.doc(userID).update(personalInFo);
             }
 
         } else if (modalInFo.fieldName == "phoneNumber") {
@@ -125,7 +125,7 @@ const PersonalInformation = ({ navigation }) => {
             } else {
                 const userID = auth.currentUser.uid;
                 var citiesRef = db.collection("passengers");
-                citiesRef.doc(userID).set(personalInFo);
+                citiesRef.doc(userID).update(personalInFo);
             }
         } else if (modalInFo.fieldName == "email") {
             let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/
@@ -139,12 +139,12 @@ const PersonalInformation = ({ navigation }) => {
             else {
                 const userID = auth.currentUser.uid;
                 var citiesRef = db.collection("passengers");
-                citiesRef.doc(userID).set(personalInFo);
+                citiesRef.doc(userID).update(personalInFo);
             }
         } else {
             const userID = auth.currentUser.uid;
             var citiesRef = db.collection("passengers");
-            citiesRef.doc(userID).set(personalInFo);
+            citiesRef.doc(userID).update(personalInFo);
         }
     }
 

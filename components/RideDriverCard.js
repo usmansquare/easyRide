@@ -4,7 +4,7 @@ import { COLORS, FONTS, icons, SIZES } from '../constants'
 import { useSelector } from 'react-redux'
 
 
-const ProfileValue = ({ containerStyle, icon, label, value, onPress }) => {
+const RideDriverCard = ({ containerStyle, icon, label, value, onPress, selected=false }) => {
     const { appTheme } = useSelector((state) => state.themeReducer)
     return (
         <TouchableOpacity
@@ -12,7 +12,9 @@ const ProfileValue = ({ containerStyle, icon, label, value, onPress }) => {
                 height: 80,
                 alignItems: 'center',
                 flexDirection: 'row',
-                ...containerStyle
+                backgroundColor: selected ? COLORS.primary : COLORS.transparent,  
+                borderWidth: selected ? 0 : 1,
+                ...containerStyle,
             }}
             onPress={onPress}
         >
@@ -46,11 +48,17 @@ const ProfileValue = ({ containerStyle, icon, label, value, onPress }) => {
             >
                 {
                     label &&
-                    <Text style={{ ...FONTS.body3, color:appTheme?.textColor }}>{label}</Text>
+                    <Text style={{ 
+                        ...FONTS.body3, 
+                        color: selected ? COLORS.white : appTheme?.textColor 
+                    }}>{label}</Text>
                 }
                 {
                     value ?
-                    <Text style={{ ...FONTS.body4, color: COLORS.gray40 }}>{value}</Text> : null
+                    <Text style={{ 
+                        ...FONTS.body4, 
+                        color: selected ? COLORS.transparentWhite8 : COLORS.gray40 
+                    }}>{value}</Text> : null
                 }
             </View>
             <Image
@@ -59,13 +67,13 @@ const ProfileValue = ({ containerStyle, icon, label, value, onPress }) => {
                 style={{
                     width: 15,
                     height: 15,
-                    tintColor: COLORS.gray50
+                    tintColor: selected ? COLORS.white :COLORS.gray50
                 }}
             />
         </TouchableOpacity>
     )
 }
 
-export default ProfileValue
+export default RideDriverCard
 
 const styles = StyleSheet.create({})

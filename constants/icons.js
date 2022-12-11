@@ -8,6 +8,8 @@ const red_pin = require("../assets/icons/red-pin.png")
 const time = require("../assets/icons/time.png")
 const heart = require("../assets/icons/heart.png")
 const call = require("../assets/icons/call.png")
+const car = require("../assets/icons/car.png")
+const customer = require("../assets/icons/customer.png")
 const warning = require("../assets/icons/warning.png")
 const location = require("../assets/icons/location.png")
 const checkbox_on = require("../assets/icons/checkbox_on.png")
@@ -61,6 +63,7 @@ export default {
     email,
     sun,
     eye,
+    car,
     pin,
     red_pin,
     nearby,
@@ -69,6 +72,7 @@ export default {
     location,
     password,
     leftArrow,
+    customer,
     doubleArrow,
     calendar,
     bed_icon,

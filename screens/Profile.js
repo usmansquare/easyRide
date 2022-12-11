@@ -332,7 +332,8 @@ const Profile = ({ navigation }) => {
         <ProfileValue
           label={'Personal Information'}
           containerStyle={{
-            height: 60
+            height: 60,
+            borderWidth: 0
           }}
           onPress={() => navigation.navigate('personalInformation')}
         />
@@ -341,7 +342,8 @@ const Profile = ({ navigation }) => {
         <ProfileValue
           label={"Acount Information"}
           containerStyle={{
-            height: 60
+            height: 60,
+            borderWidth: 0
           }}
           onPress={() => navigation.navigate('accountInformation')}
         />
@@ -350,7 +352,8 @@ const Profile = ({ navigation }) => {
         <ProfileValue
           label={"Manage Privacy"}
           containerStyle={{
-            height: 60
+            height: 60,
+            borderWidth: 0
           }}
           onPress={() => navigation.navigate('managePrivacy')}
         />
@@ -364,16 +367,18 @@ const Profile = ({ navigation }) => {
         <ProfileValue
           label={'Help'}
           containerStyle={{
-            height: 60
+            height: 60,
+            borderWidth: 0
           }}
           onPress={() => navigation.navigate('help')}
         />
         <LineDivider />
 
         <ProfileValue
-          label={"About Tripak"}
+          label={"About EasyRide"}
           containerStyle={{
-            height: 60
+            height: 60,
+            borderWidth: 0
           }}
           onPress={() => navigation.navigate('about')}
         />
@@ -387,7 +392,8 @@ const Profile = ({ navigation }) => {
         <ProfileValue
           label={'Update Password'}
           containerStyle={{
-            height: 60
+            height: 60,
+            borderWidth: 0
           }}
           onPress={() => setUpdatePasswordModal(!updatePasswordModal)}
         />
@@ -397,7 +403,8 @@ const Profile = ({ navigation }) => {
         <ProfileValue
           label={'LogOut'}
           containerStyle={{
-            height: 60
+            height: 60,
+            borderWidth: 0
           }}
           onPress={() => {
             setLogOutModal(!logOutModal)
@@ -477,6 +484,7 @@ const Profile = ({ navigation }) => {
       {/* Header */}
       {renderHeader()}
       <ScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: SIZES.padding,
           paddingBottom: 105

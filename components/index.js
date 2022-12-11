@@ -19,4 +19,6 @@ export { default as UpComingRides } from './UpComingRides'
 export { default as CompletedRides } from './CompletedRides'
 export { default as CancelledRides } from './CancelledRides'
 export { default as RideModal } from './RideModal'
+export { default as RideDriverCard } from './RideDriverCard'
+export { default as PaymentMode} from './PaymentMode'
 

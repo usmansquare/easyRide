@@ -66,7 +66,7 @@ const StarReview = ({ rate }) => {
 };
 
 const RideModal = ({
-    modalVisible, setModalVisible, travelInfo
+    modalVisible, setModalVisible, rideInfo
 }) => {
 
     const _map = useRef();
@@ -79,21 +79,24 @@ const RideModal = ({
     const [driver, setDriver] = useState(null)
 
     useEffect(() => {
-        let rides = []
-
-        db.collection('rides').where('userID', '==', auth.currentUser.uid).get().then((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-                console.log("Ride ", doc.data())
-                rides.push(doc.data())
-            });
-            setRideDetails(rides[0])
-        })
-    }, []);
+        if (rideInfo) {
+            console.log("Ride info", rideInfo)
+            setRideDetails(rideInfo)
+        } else {
+            let rides = []
+            db.collection('rides').where('userID', '==', auth.currentUser.uid).where("status", "==", "upcoming").get().then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    rides.push(doc.data())
+                });
+                setRideDetails(rides[0])
+            })
+        }
+    }, [rideInfo]);
 
     useEffect(() => {
 
-        if(!rideDetails) return;
-        
+        if (!rideDetails) return;
+
         db.collection('drivers').doc(rideDetails?.driverID).get()
             .then((doc) => {
                 setDriver(doc.data())
@@ -119,7 +122,7 @@ const RideModal = ({
         setToLocation(toLoc);
         setFromLocation(fromLoc);
         setRegion(mapRegion);
-
+        setModalVisible(!modalVisible)
     }, [rideDetails])
 
     useEffect(() => {
@@ -137,6 +140,19 @@ const RideModal = ({
         const data = await response.json();
         (data.rows[0].elements[0]);
     };
+
+    const handleCancelingRide = () => {
+        db.collection("rides").doc(rideDetails?.id).update({
+            status: "cancelled"
+        })
+            .then(() => {
+                console.log("Document successfully updated!");
+                setModalVisible(!modalVisible)
+            })
+            .catch((error) => {
+                console.error("Error updating document: ", error);
+            });
+    }
 
     const calculateAngle = (coordinates) => {
         let startLat = coordinates[0]["latitude"];
@@ -206,8 +222,8 @@ const RideModal = ({
                 <Image
                     source={icons.car}
                     style={{
-                        width: 40,
-                        height: 40
+                        width: 25,
+                        height: 25
                     }}
                 />
 
@@ -220,7 +236,7 @@ const RideModal = ({
             animationType='fade'
             transparent={true}
             visible={modalVisible}
-            onRequestClose={() => setModalVisible}
+            onRequestClose={() => setModalVisible(!modalVisible)}
         >
             <View style={styles.container}>
                 <View style={styles.header}>
@@ -324,10 +340,10 @@ const RideModal = ({
                                         }}
                                     >
                                         <View style={{}}>
-                                            <Text style={{ ...FONTS.h3 }}>{driver?.name ?? "..."}</Text>
+                                            <Text style={{ ...FONTS.h3, fontSize: 18 }}>{driver?.name ?? "..."}</Text>
                                             <StarReview rate={4.5} />
                                         </View>
-                                        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                                        <View style={{ justifyContent: 'center', alignItems: 'flex-end' }}>
                                             <Text style={{ ...FONTS.body3 }} >{driver?.rideType}</Text>
                                             <Text style={{ ...FONTS.body3 }}>{driver?.vehicle?.vehicleNo ?? "..."}</Text>
                                         </View>
@@ -399,7 +415,7 @@ const RideModal = ({
                                     </View>
 
                                     {/* Vertical Line */}
-                                    <View
+                                    {/* <View
                                         style={{
                                             position: 'absolute',
                                             bottom: '13%', left: '6.5%',
@@ -408,7 +424,7 @@ const RideModal = ({
                                             backgroundColor: COLORS.sceondary
                                         }}
                                     >
-                                    </View>
+                                    </View> */}
                                 </View>
                             </View>
                         </View>
@@ -426,7 +442,7 @@ const RideModal = ({
                                 </View>
                                 <TouchableOpacity
                                     style={{ width: 130, height: '80%', marginHorizontal: SIZES.radius }}
-                                    onPress={() => { }}
+                                    onPress={() => handleCancelingRide()}
                                 >
                                     <LinearGradient
                                         style={{ flex: 1, justifyContent: 'center', alignItems: 'center', borderRadius: 10 }}

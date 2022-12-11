@@ -90,12 +90,20 @@ const SignUp = ({ navigation }) => {
     };
 
     const addUser = (user) => {
+        const userID = user.uid
         const userData = {
+            'id': userID,
             'mapInitialRegion': userLocation,
             'email': user.email
         }
-        const userID = user.uid
-        db.collection('passengers').doc(userID).set(userData)
+
+        db.collection("passengers").doc(userID).set(userData)
+        .then((docRef) => {
+            console.log("Document written with ID: ", docRef.id);
+        })
+        .catch((error) => {
+            console.error("Error adding document: ", error);
+        })
     }
 
     const textChangeHandler = (val) => {
@@ -175,7 +183,7 @@ const SignUp = ({ navigation }) => {
 
     const confirmPasswordChangeHandler = (value) => {
         let length = value.length
-        let password = data.password.slice(0,length)
+        let password = data.password.slice(0, length)
         if (value == password) {
             setData({
                 ...data,
@@ -284,7 +292,7 @@ const SignUp = ({ navigation }) => {
                         style={styles.textInput}
                         autoCapitalize='none'
                         secureTextEntry={data.secureTextEntry}
-                        onChangeText={(value) =>{
+                        onChangeText={(value) => {
                             passwordChangeHandler(value)
                             handleVisibility()
                         }}
