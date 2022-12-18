@@ -81,7 +81,8 @@ const Welcome = ({ navigation }) => {
 export default Welcome
 
 const { height } = Dimensions.get('screen')
-const height_logo = height * 0.28
+const width_logo = height * 0.28
+const height_logo = height * 0.35
 
 const styles = StyleSheet.create({
     container: {
@@ -102,8 +103,9 @@ const styles = StyleSheet.create({
         paddingVertical: 50
     },
     logo: {
-        width: height_logo,
-        height: height_logo
+        width: width_logo,
+        height: height_logo,
+        tintColor: COLORS.white
     },
     title: {
         color: '#05375a',

@@ -14,7 +14,7 @@ import { MapStyle } from '../styles'
 const SURGE_CHARGE_RATE = 1.5;
 
 const RequestRideModal = ({
-	modalVisible, setModalVisible, origin, destination, travelInfo, setRideDetails, handleRideBooking,
+	modalVisible, setModalVisible, origin, destination, travelInfo, setRideDetails,
 	setPaymentModeModal
 }) => {
 	Moment.locale('en')
@@ -25,20 +25,34 @@ const RequestRideModal = ({
 	const [toLocation, setToLocation] = useState(null);
 	const [region, setRegion] = useState(null);
 	const [selected, setSelected] = useState(null)
+	const [passenger, setPassenger] = useState(null)
 
 	const [uberX, setUberX] = useState(null)
 	const [uberXL, setUberXL] = useState(null)
 	const [uberLUX, setUberLUX] = useState(null)
 
+	useEffect(() => {
+		db.collection("passengers").doc(auth?.currentUser?.uid)
+		.get().then((doc) => {
+			if (doc.exists) {
+				setPassenger(doc.data())
+			} else {
+				// doc.data() will be undefined in this case
+				console.log("No such document!");
+			}
+		}).catch((error) => {
+			console.log("Error getting document:", error);
+		});
+	}, [])
 
 	useEffect(() => {
-		if (!origin) return;
+		if (!origin || !passenger) return;
 
 		setUberX([])
 		setUberXL([])
 		setUberLUX([])
 
-		db.collection("drivers").get().then((querySnapshot) => {
+		db.collection("drivers").where("gender", "==", passenger?.gender).get().then((querySnapshot) => {
 			querySnapshot.forEach((doc) => {
 				let driver = doc.data()
 				let url = 'https://maps.googleapis.com/maps/api/distancematrix/json?origins=' + origin.location.lat + '%2C' + origin.location.lng + '&destinations=' + driver.mapInitialRegion.latitude + '%2C' + driver.mapInitialRegion.longitude + '&key=' + GOOGLE_MAPS_API_KEY;
@@ -77,7 +91,7 @@ const RequestRideModal = ({
 					})
 			})
 		});
-	}, [origin])
+	}, [origin, passenger])
 
 	useEffect(() => {
 
