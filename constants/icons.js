@@ -21,6 +21,7 @@ const eat_icon = require("../assets/icons/eat_icon.png")
 const nearby = require("../assets/icons/nearby.png")
 const sun = require("../assets/icons/sun.png")
 const email = require("../assets/icons/email.png")
+const email_svg = require("../assets/icons/email_svg.png")
 const camera = require("../assets/icons/camera.png")
 const account = require("../assets/icons/account.png")
 const search = require("../assets/icons/search.png")
@@ -28,6 +29,7 @@ const calendar = require("../assets/icons/calendar.png")
 const profile = require("../assets/icons/profile.png")
 const question = require("../assets/icons/question.png")
 const humidity = require("../assets/icons/humidity.png")
+const guardian = require("../assets/icons/guardian.png")
 const temperature = require("../assets/icons/temperature.png")
 const booking = require("../assets/icons/booking.png")
 const bedOn = require("../assets/icons/bed_on.png")
@@ -68,6 +70,7 @@ export default {
     red_pin,
     nearby,
     warning,
+    guardian,
     account,
     location,
     password,
@@ -79,6 +82,7 @@ export default {
     bus_icon,
     eat_icon,
     downArrow,
+    email_svg,
     camera,
     search,
     profile,

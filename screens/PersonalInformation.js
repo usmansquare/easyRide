@@ -31,7 +31,6 @@ const PersonalInformation = ({ navigation }) => {
     const [validate, setValidate] = useState(true)
     const [selectedArea, setSelectedArea] = useState(null)
     const [modalVisible, setModalVisible] = useState(false)
-    const [areaCodesModal, setAreaCodesModal] = useState(false)
 
     useEffect(() => {
         const userID = auth.currentUser.uid
@@ -46,7 +45,8 @@ const PersonalInformation = ({ navigation }) => {
                     lastName: userData.lastName ? userData.lastName : '',
                     phoneNumber: userData.phoneNumber ? userData.phoneNumber : '',
                     dob: userData.dob ? userData.dob : '',
-                    homeTown: userData.homeTown ? userData.homeTown : ''
+                    homeTown: userData.homeTown ? userData.homeTown : '',
+                    guardian: userData.guardian ? userData.guardian : ''
                 });
             } else {
                 console.log("No such document Exist ...");
@@ -316,6 +316,22 @@ const PersonalInformation = ({ navigation }) => {
                         })
                     }}
                 />
+                <ProfileValue
+                    icon={icons.customer}
+                    label={'Guardian'}
+                    value={personalInFo.guardian == '' ? 'Not Provided' : personalInFo.guardian}
+                    containerStyle={styles.profileContainer}
+                    onPress={() => {
+                        setModalVisible(true)
+                        setModalInFo({
+                            ...modalInFo,
+                            title: 'Update Guardian',
+                            fieldName: 'guardian',
+                            displayName: 'Guardian',
+                            description: 'Please select the guardian you\'d like to use with your account.'
+                        })
+                    }}
+                />
             </ScrollView>
 
             <PersonalInFoModal
@@ -326,8 +342,6 @@ const PersonalInformation = ({ navigation }) => {
                 modalInFo={modalInFo}
                 handleSave={handleSave}
                 areas={areas}
-                areaCodesModal={areaCodesModal}
-                setAreaCodesModal={setAreaCodesModal}
                 selectedArea={selectedArea}
                 setSelectedArea={setSelectedArea}
             />

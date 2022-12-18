@@ -13,7 +13,11 @@ const Welcome = ({ navigation }) => {
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(user => {
             if (user) {
-                navigation.replace('tabs')
+                if (user.emailVerified){
+                    navigation.navigate('tabs')
+                } else {
+                    navigation.navigate('emailVerification')
+                }
             } else {
                 setVisibility(true)
             }

@@ -21,4 +21,4 @@ export { default as CancelledRides } from './CancelledRides'
 export { default as RideModal } from './RideModal'
 export { default as RideDriverCard } from './RideDriverCard'
 export { default as PaymentMode} from './PaymentMode'
-
+export { default as GuardianInfoModal } from './GuardianInfoModal'

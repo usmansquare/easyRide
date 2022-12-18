@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { LinearGradient } from 'expo-linear-gradient'
 import { COLORS, FONTS, SIZES, icons } from '../constants'
-import { Welcome, SignIn, SignUp, Home, Rides, Services, RequestRide,
+import { Welcome, SignIn, SignUp, Home, Rides, Services, RequestRide, EmailVerfication,
  AccountInformation, ManagePrivacy, PersonalInformation, About, Help, Profile, Childrens } from '../screens'
 
  const AuthStack = createStackNavigator()
@@ -29,6 +29,10 @@ const AuthStackScreen = () => (
         <AuthStack.Screen
             name='signUp'
             component={SignUp}  
+        />
+        <AuthStack.Screen
+            name='emailVerification'
+            component={EmailVerfication}  
         />
     </AuthStack.Navigator>
 );

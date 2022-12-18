@@ -1,19 +1,44 @@
 import { Modal, StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Animatable from 'react-native-animatable'
-import { AreaCodesModal } from '../components'
-import { COLORS, SIZES, FONTS, icons } from '../constants'
+import { AreaCodesModal, GuardianInfoModal } from '../components'
+import { COLORS, SIZES, FONTS, icons, images } from '../constants'
+import { auth, db } from '../firebase'
+
+
 
 const PersonalInFoModal = ({
     modalVisible, setModalVisible, personalInFo, setPersonalInFo,
-    modalInFo, handleSave, selectedArea, setSelectedArea, areas, areaCodesModal, setAreaCodesModal
+    modalInFo, handleSave, selectedArea, setSelectedArea, areas
 }) => {
+
+    const [areaCodesModal, setAreaCodesModal] = useState(false)
+    const [guardianModal, setGuardianModal] = useState(false)
+    const [guardian, setGuardian] = useState(null)
 
     const [disable, setDisable] = useState(true)
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [date, setDate] = useState(new Date());
+
+
+    useEffect(() => {
+        if(personalInFo?.guardian == '') return;
+
+        var docRef = db.collection("passengers").doc(personalInFo?.guardian);
+        docRef.get().then((doc) => {
+            if (doc.exists) {
+                setGuardian(doc.data())
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+            }
+        }).catch((error) => {
+            console.log("Error getting document:", error);
+        });
+
+    }, [personalInFo])
 
     const handleVisibility = () => {
         if (modalInFo.fieldName == "name") {
@@ -32,7 +57,7 @@ const PersonalInFoModal = ({
             }
         }
     };
-    
+
     return (
         <>
             <Modal
@@ -203,9 +228,9 @@ const PersonalInFoModal = ({
                             modalInFo.fieldName == "dob" &&
                             <>
                                 < Text style={styles.text_footer}>{modalInFo.displayName}</Text>
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     style={styles.action}
-                                    onPress= {() => setShowDatePicker(true)}    
+                                    onPress={() => setShowDatePicker(true)}
                                 >
                                     <Image
                                         source={icons.calendar}
@@ -235,7 +260,7 @@ const PersonalInFoModal = ({
                                             setShowDatePicker(false)
                                             setDate(selectedDate)
                                             handleVisibility()
-                                        }}  
+                                        }}
                                     />
                                 )}
                             </>
@@ -268,6 +293,39 @@ const PersonalInFoModal = ({
                                     />
                                 </View>
                             </>
+                        }
+
+                        {
+                            modalInFo.fieldName == "guardian" &&
+                            <View>
+                                < Text style={styles.text_footer}>{modalInFo.displayName}</Text>
+                                <View style={[styles.action, {}]}>
+                                    <TouchableOpacity
+                                        style={{
+                                            flex: 1,
+                                            flexDirection: 'row',
+                                            alignItems: 'center'
+                                        }}
+                                        onPress={() => setGuardianModal(!guardianModal)}
+                                    >
+                                        <Image
+                                            source={images.banner}
+                                            style={{
+                                                width: 30,
+                                                height: 30,
+                                                borderRadius: SIZES.radius,
+                                                marginRight: 10
+                                            }}
+                                        />
+                                        {
+                                            guardian != null
+                                                ? <Text style={{ ...FONTS.body3, color: COLORS.black }}>{`${guardian?.firstName} ${guardian?.lastName}`}</Text>
+                                                : <Text style={{ ...FONTS.body3, color: COLORS.black }}>Please Select Your Guardian</Text>
+                                        }
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
                         }
 
                         {/* Buttons */}
@@ -304,6 +362,7 @@ const PersonalInFoModal = ({
                     </Animatable.View>
                 </View>
             </Modal >
+
             <AreaCodesModal
                 areas={areas}
                 modalVisible={areaCodesModal}
@@ -311,6 +370,14 @@ const PersonalInFoModal = ({
                 setSelectedArea={setSelectedArea}
             />
 
+            <GuardianInfoModal
+                modalVisible={guardianModal}
+                setModalVisible={setGuardianModal}
+                setGuardian={setGuardian}
+                personalInFo={personalInFo}
+                setPersonalInFo={setPersonalInFo}
+                handleVisibility={handleVisibility}
+            />
         </>
     )
 }

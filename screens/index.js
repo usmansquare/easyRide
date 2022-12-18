@@ -12,5 +12,6 @@ export { default as ManagePrivacy } from './ManagePrivacy'
 export { default as PersonalInformation } from './PersonalInformation'
 export { default as AccountInformation } from './AccountInformation'
 export { default as RequestRide } from './RequestRide'
+export { default as EmailVerfication } from './EmailVerfication'
 
 
